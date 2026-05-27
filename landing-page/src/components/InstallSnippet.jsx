@@ -9,11 +9,11 @@ const InstallSnippet = () => {
   const [copied, setCopied] = useState(false);
 
   const commands = {
-    linux: ['curl -fsSL https://raw.githubusercontent.com/krishnagoyal099/bastion/main/install.sh | bash'],
-    macos: ['curl -fsSL https://raw.githubusercontent.com/krishnagoyal099/bastion/main/install.sh | bash'],
+    linux: ['curl -fsSL https://raw.githubusercontent.com/krishnagoyal099/Bastion-solana/main/install-cli.sh | bash'],
+    macos: ['curl -fsSL https://raw.githubusercontent.com/krishnagoyal099/Bastion-solana/main/install-cli.sh | bash'],
     windows: [
       'wsl --install',
-      'curl -fsSL https://raw.githubusercontent.com/krishnagoyal099/bastion/main/install.sh | bash'
+      'curl -fsSL https://raw.githubusercontent.com/krishnagoyal099/Bastion-solana/main/install-cli.sh | bash'
     ]
   };
 
