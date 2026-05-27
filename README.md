@@ -1,6 +1,6 @@
-# ♜ Bastion Protocol
-
 <div align="center">
+  <img src="./assets/logo.png" alt="Bastion Logo" width="120" />
+  <h1>♜ Bastion Protocol</h1>
   <p><strong>Privacy-preserving dark pool trading on Solana. Powered by Zero-Knowledge Proofs.</strong></p>
   <p>
     <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-purple.svg" alt="License: MIT" /></a>
@@ -32,7 +32,7 @@ Get started trading in seconds using our interactive Terminal UI (TUI):
 
 ```bash
 # 1. Install the Bastion CLI
-curl -fsSL https://raw.githubusercontent.com/krishnagoyal099/bastion/main/install-cli.sh | bash
+curl -fsSL https://raw.githubusercontent.com/krishnagoyal099/Bastion-solana/main/install-cli.sh | bash
 
 # 2. Launch the trading terminal
 bastion
@@ -91,8 +91,8 @@ Bastion consists of a suite of Solana programs and a powerful client-side execut
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/krishnagoyal099/bastion.git
-cd bastion
+git clone https://github.com/krishnagoyal099/Bastion-solana.git
+cd Bastion-solana
 
 # 2. Build the Solana programs
 anchor build
