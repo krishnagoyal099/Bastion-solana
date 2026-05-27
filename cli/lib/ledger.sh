@@ -1,6 +1,6 @@
 #!/bin/bash
 # Bastion TUI - Local Ledger
-# Transaction history with fzf filtering
+# Transaction history with search filtering
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
@@ -17,7 +17,7 @@ init_ledger() {
 }
 
 # ═══════════════════════════════════════════════════════════════════
-# Fetch On-Chain Transactions from Testnet
+# Fetch On-Chain Transactions from Solana
 # ═══════════════════════════════════════════════════════════════════
 
 fetch_onchain_transactions() {
@@ -25,8 +25,9 @@ fetch_onchain_transactions() {
     
     # Get current identity's public key
     local public_key=""
-    if [[ -n "$SUPER_PUBLIC_KEY" ]]; then
-        public_key="$SUPER_PUBLIC_KEY"
+    local key_file=$(get_identity_key_file "$(get_current_identity)")
+    if [[ -f "$key_file" ]]; then
+        public_key=$(get_pubkey_from_keypair "$key_file")
     fi
     
     if [[ -z "$public_key" ]]; then
@@ -34,32 +35,32 @@ fetch_onchain_transactions() {
         return 1
     fi
     
-    # Fetch from REST API
+    # Fetch recent signatures from Solana RPC
     local result
-    result=$(get_account_transfers "$public_key" "$limit" 2>/dev/null)
+    result=$(get_recent_signatures "$public_key" "$limit" 2>/dev/null)
     
     if [[ -z "$result" ]]; then
         echo "[]"
         return 1
     fi
     
-    # Parse and format the transactions
+    # Parse and format
     echo "$result" | python3 -c "
 import sys, json
+from datetime import datetime
 try:
     data = json.load(sys.stdin)
-    transfers = data.get('data', [])
+    sigs = data.get('result', [])
     
     formatted = []
-    for t in transfers:
+    for s in sigs:
         tx = {
-            'hash': t.get('deploy_hash', 'N/A'),
-            'type': 'transfer',
-            'amount': str(int(t.get('amount', 0)) / 1e9) + ' CSPR',
-            'timestamp': t.get('timestamp', ''),
-            'status': 'success',
-            'from': t.get('initiator_account_hash', '')[:16] + '...' if t.get('initiator_account_hash') else 'N/A',
-            'to': t.get('to_account_hash', '')[:16] + '...' if t.get('to_account_hash') else 'N/A',
+            'hash': s.get('signature', 'N/A'),
+            'type': 'transaction',
+            'amount': 'N/A',
+            'timestamp': datetime.fromtimestamp(s.get('blockTime', 0)).isoformat() if s.get('blockTime') else '',
+            'status': 'success' if s.get('err') is None else 'failed',
+            'slot': s.get('slot', 0),
             'onchain': True
         }
         formatted.append(tx)
@@ -73,7 +74,7 @@ except Exception as e:
 list_onchain_transactions() {
     local limit="${1:-10}"
     
-    echo -e "${C_BOLD}${C_CYAN}📡 On-Chain Transfers (Live from Testnet)${C_RESET}"
+    echo -e "${C_BOLD}${C_CYAN}📡 On-Chain Transactions (Live from Solana)${C_RESET}"
     echo ""
     
     local txs
@@ -93,22 +94,22 @@ data = json.load(sys.stdin)
 if not data:
     print('  No transactions found.')
 else:
-    print(f\"  {'Status':<8} {'Type':<10} {'Amount':<18} {'Hash':<22} {'Time':<16}\")
-    print('  ' + '─' * 80)
+    print(f\"  {'Status':<8} {'Type':<12} {'Signature':<48} {'Slot':<10} {'Time':<16}\")
+    print('  ' + '─' * 96)
     
     for tx in data[:10]:
-        status = '✓'
-        type_str = '📤 ' + tx.get('type', 'unknown')
-        amount = tx.get('amount', '0')
-        hash_short = tx.get('hash', '')[:18] + '...'
+        status = '✓' if tx.get('status') == 'success' else '✗'
+        type_str = tx.get('type', 'unknown')
+        sig = tx.get('hash', '')[:44] + '...'
+        slot = str(tx.get('slot', ''))
         
         try:
-            ts = datetime.fromisoformat(tx.get('timestamp', '').replace('Z', '+00:00'))
+            ts = datetime.fromisoformat(tx.get('timestamp', ''))
             time_str = ts.strftime('%m/%d %H:%M')
         except:
             time_str = tx.get('timestamp', '')[:16]
         
-        print(f\"  {status:<8} {type_str:<10} {amount:<18} {hash_short:<22} {time_str:<16}\")
+        print(f\"  {status:<8} {type_str:<12} {sig:<48} {slot:<10} {time_str:<16}\")
 " 2>/dev/null
 }
 
@@ -127,10 +128,7 @@ add_transaction() {
     init_ledger
     
     local timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-    local id=$(openssl rand -hex 8)
-    
-    # Escape extra JSON for safe Python interpolation
-    local extra_escaped=$(echo "$extra" | sed 's/"/\\"/g')
+    local id=$(openssl rand -hex 8 2>/dev/null || python3 -c "import os; print(os.urandom(8).hex())")
     
     python3 << PYEOF
 import json
@@ -207,22 +205,18 @@ with open('$LEDGER_FILE', 'r') as f:
 
 txs = data.get("transactions", [])
 
-# Filter by type if specified
 filter_type = "$filter_type"
 if filter_type:
     txs = [t for t in txs if t.get("type") == filter_type]
 
-# Sort by timestamp (newest first)
 txs = sorted(txs, key=lambda x: x.get("timestamp", ""), reverse=True)[:$limit]
 
-# Status icons
 status_icons = {
     "success": "✓",
     "failed": "✗",
     "pending": "◐"
 }
 
-# Type icons
 type_icons = {
     "mint": "🪙",
     "swap": "🔄",
@@ -244,7 +238,6 @@ else:
         amount = tx.get("amount", "0")
         hash_short = tx.get("hash", "")[:16] + "..."
         
-        # Format timestamp
         try:
             ts = datetime.fromisoformat(tx.get("timestamp", "").replace("Z", "+00:00"))
             time_str = ts.strftime("%m/%d %H:%M")
@@ -266,7 +259,6 @@ history_browser() {
     show_banner
     draw_section "Transaction History"
     
-    # Get all transactions as formatted lines
     local tx_lines
     tx_lines=$(python3 << PYEOF
 import json
@@ -283,19 +275,16 @@ PYEOF
     if [[ -z "$tx_lines" ]]; then
         msg_info "No transactions recorded yet."
         echo ""
-        ~/.local/bin/gum input --placeholder "Press Enter to continue..."
+        gum input --placeholder "Press Enter to continue..."
         return
     fi
     
-    # Use gum filter for interactive selection
     local selected
-    selected=$(echo "$tx_lines" | ~/.local/bin/gum filter --placeholder "Search transactions..." --height 15)
+    selected=$(echo "$tx_lines" | gum filter --placeholder "Search transactions..." --height 15)
     
     if [[ -n "$selected" ]]; then
-        # Extract hash from selected line
         local hash=$(echo "$selected" | grep -oP '[a-f0-9]{20}')
         
-        # Show transaction details
         echo ""
         draw_section "Transaction Details"
         python3 << PYEOF
@@ -317,7 +306,7 @@ PYEOF
     fi
     
     echo ""
-    ~/.local/bin/gum input --placeholder "Press Enter to continue..."
+    gum input --placeholder "Press Enter to continue..."
 }
 
 # ═══════════════════════════════════════════════════════════════════
@@ -330,7 +319,6 @@ ledger_menu() {
         show_banner
         draw_section "Transaction Ledger"
         
-        # Show on-chain transactions first (real data)
         list_onchain_transactions 5
         echo ""
         
@@ -340,33 +328,33 @@ ledger_menu() {
         echo ""
         
         local choice
-        choice=$(~/.local/bin/gum choose \
-            "View On-Chain Transfers" \
+        choice=$(gum choose \
+            "View On-Chain Transactions" \
             "Browse Local History" \
             "Filter by Type" \
             "Export to CSV" \
             "← Back to Main Menu")
         
         case "$choice" in
-            "View On-Chain Transfers")
+            "View On-Chain Transactions")
                 clear_screen
                 show_banner
-                draw_section "On-Chain Transfers"
+                draw_section "On-Chain Transactions"
                 list_onchain_transactions 20
                 echo ""
-                ~/.local/bin/gum input --placeholder "Press Enter to continue..."
+                gum input --placeholder "Press Enter to continue..."
                 ;;
             "Browse Local History")
                 history_browser
                 ;;
             "Filter by Type")
                 local type
-                type=$(~/.local/bin/gum choose "mint" "swap" "deposit" "order" "withdraw")
+                type=$(gum choose "mint" "swap" "deposit" "order" "withdraw")
                 clear_screen
                 draw_section "Transactions: $type"
                 list_transactions "$type" 20
                 echo ""
-                ~/.local/bin/gum input --placeholder "Press Enter to continue..."
+                gum input --placeholder "Press Enter to continue..."
                 ;;
             "Export to CSV")
                 local csv_file="bastion_history_$(date +%Y%m%d).csv"

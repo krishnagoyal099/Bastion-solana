@@ -1,1 +1,3 @@
-cli/bastion
+#!/bin/bash
+# Bastion Launcher
+exec "$(dirname "$0")/cli/bastion" "$@"

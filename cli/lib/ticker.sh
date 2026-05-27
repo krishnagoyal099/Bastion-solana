@@ -1,6 +1,6 @@
 #!/bin/bash
 # Bastion TUI - Live Market Ticker
-# Non-flickering real-time display
+# Non-flickering real-time display with Solana pool data
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
@@ -8,62 +8,72 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LAST_PRICE_DATA=""
 
 # ═══════════════════════════════════════════════════════════════════
-# Real Price Data from Testnet
+# Price Data — tries on-chain first, falls back to simulation
 # ═══════════════════════════════════════════════════════════════════
 
 get_price_data() {
-    # Query real pool reserves from testnet AMM contract
+    # Try to get real pool reserves from Solana AMM program
     local reserves
-    reserves=$(get_pool_reserves 2>/dev/null)
-    
-    # Check if we got real data or an error
-    if [[ "$reserves" == "ERROR:"* || -z "$reserves" ]]; then
-        # Contract unavailable - return error indicator
-        echo '{"error": "Contract unavailable", "simulated": true, "price": 0.025, "change_pct": 0, "reserve_cspr": 0, "reserve_musd": 0, "volume_24h": 0, "lp_tokens": 0, "fee_pct": 0.3}'
-        return 1
-    fi
-    
-    # Parse reserves
-    local reserve_cspr="${reserves%%:*}"
-    local reserve_musd="${reserves##*:}"
-    
-    # Validate we got numbers
-    if ! [[ "$reserve_cspr" =~ ^[0-9]+$ ]] || ! [[ "$reserve_musd" =~ ^[0-9.]+$ ]]; then
-        echo '{"error": "Invalid reserve data", "simulated": true, "price": 0.025, "change_pct": 0, "reserve_cspr": 0, "reserve_musd": 0, "volume_24h": 0, "lp_tokens": 0, "fee_pct": 0.3}'
-        return 1
-    fi
-    
-    # Calculate price and other metrics
-    python3 << PYEOF
+    reserves=$(get_pool_reserves 2>/dev/null) || true
+
+    if [[ "$reserves" != "ERROR:"* && -n "$reserves" ]]; then
+        local reserve_sol="${reserves%%:*}"
+        local reserve_usdc="${reserves##*:}"
+
+        if [[ "$reserve_sol" =~ ^[0-9]+$ ]] && [[ "$reserve_usdc" =~ ^[0-9.]+$ ]] && [[ "$reserve_sol" != "0" ]]; then
+            python3 <<PYEOF
 import json
-
-reserve_cspr = float('$reserve_cspr')
-reserve_musd = float('$reserve_musd')
-
-# Avoid division by zero
-if reserve_cspr == 0:
-    price = 0.025
-else:
-    price = reserve_musd / reserve_cspr
-
-# Calculate LP tokens (sqrt of product)
-lp_tokens = int((reserve_cspr * reserve_musd) ** 0.5) if reserve_cspr > 0 and reserve_musd > 0 else 0
-
-# We don't have historical data on testnet, so change is 0
-change_pct = 0.0
-
-# Volume would require event indexing, set to unknown
-volume = 0
-
+reserve_sol = float('$reserve_sol')
+reserve_usdc = float('$reserve_usdc')
+price = reserve_usdc / reserve_sol if reserve_sol > 0 else 170.25
+lp_tokens = int((reserve_sol * reserve_usdc) ** 0.5) if reserve_sol > 0 and reserve_usdc > 0 else 0
 print(json.dumps({
-    "price": round(price, 6),
-    "change_pct": round(change_pct, 2),
-    "reserve_cspr": int(reserve_cspr),
-    "reserve_musd": round(reserve_musd, 2),
-    "volume_24h": volume,
+    "price": round(price, 4),
+    "change_pct": 0.0,
+    "reserve_sol": int(reserve_sol),
+    "reserve_usdc": round(reserve_usdc, 2),
+    "volume_24h": 0,
     "lp_tokens": lp_tokens,
     "fee_pct": 0.3,
     "live": True
+}))
+PYEOF
+            return 0
+        fi
+    fi
+
+    # Fallback: simulated market data (realistic SOL/USDC movements)
+    python3 << 'PYEOF'
+import random
+import json
+import time
+
+# Seed with time for reproducible but varying prices
+random.seed(int(time.time()) // 2)  # Changes every 2 seconds
+
+# SOL/USDC base values
+base_price = 172.50
+base_reserve_sol = 5000
+base_reserve_usdc = 862500
+base_volume = 1450000
+
+# Add realistic randomness
+price = base_price * (1 + random.uniform(-0.015, 0.015))
+reserve_sol = int(base_reserve_sol * (1 + random.uniform(-0.03, 0.03)))
+reserve_usdc = round(base_reserve_usdc * (1 + random.uniform(-0.03, 0.03)), 2)
+volume = int(base_volume * (1 + random.uniform(-0.2, 0.4)))
+
+change_pct = random.uniform(-3.5, 5.0)
+
+print(json.dumps({
+    "price": round(price, 4),
+    "change_pct": round(change_pct, 2),
+    "reserve_sol": reserve_sol,
+    "reserve_usdc": reserve_usdc,
+    "volume_24h": volume,
+    "lp_tokens": int((reserve_sol * reserve_usdc) ** 0.5),
+    "fee_pct": 0.3,
+    "simulated": True
 }))
 PYEOF
 }
@@ -74,32 +84,41 @@ PYEOF
 
 render_ticker() {
     local data="$1"
-    
-    local price=$(echo "$data" | python3 -c "import sys,json; print(json.load(sys.stdin)['price'])")
-    local change=$(echo "$data" | python3 -c "import sys,json; print(json.load(sys.stdin)['change_pct'])")
-    local reserve_cspr=$(echo "$data" | python3 -c "import sys,json; print(json.load(sys.stdin)['reserve_cspr'])")
-    local reserve_musd=$(echo "$data" | python3 -c "import sys,json; print(json.load(sys.stdin)['reserve_musd'])")
-    local volume=$(echo "$data" | python3 -c "import sys,json; print(json.load(sys.stdin)['volume_24h'])")
-    local lp_tokens=$(echo "$data" | python3 -c "import sys,json; print(json.load(sys.stdin)['lp_tokens'])")
-    
-    # Determine change color
+
+    local price change reserve_sol reserve_usdc volume lp_tokens is_sim
+    price=$(echo "$data" | python3 -c "import sys,json; print(json.load(sys.stdin)['price'])" 2>/dev/null) || price="0"
+    change=$(echo "$data" | python3 -c "import sys,json; print(json.load(sys.stdin)['change_pct'])" 2>/dev/null) || change="0"
+    reserve_sol=$(echo "$data" | python3 -c "import sys,json; print(json.load(sys.stdin)['reserve_sol'])" 2>/dev/null) || reserve_sol="0"
+    reserve_usdc=$(echo "$data" | python3 -c "import sys,json; print(json.load(sys.stdin)['reserve_usdc'])" 2>/dev/null) || reserve_usdc="0"
+    volume=$(echo "$data" | python3 -c "import sys,json; print(json.load(sys.stdin)['volume_24h'])" 2>/dev/null) || volume="0"
+    lp_tokens=$(echo "$data" | python3 -c "import sys,json; print(json.load(sys.stdin)['lp_tokens'])" 2>/dev/null) || lp_tokens="0"
+    is_sim=$(echo "$data" | python3 -c "import sys,json; d=json.load(sys.stdin); print('SIM' if d.get('simulated') else 'LIVE')" 2>/dev/null) || is_sim="SIM"
+
     local change_color="$C_SUCCESS"
     local change_arrow="↑"
-    if (( $(echo "$change < 0" | bc -l) )); then
+    local change_neg
+    change_neg=$(python3 -c "print(1 if float('$change') < 0 else 0)" 2>/dev/null) || change_neg="0"
+    if [[ "$change_neg" == "1" ]]; then
         change_color="$C_ERROR"
         change_arrow="↓"
     fi
-    
-    # Calculate depths
-    local depth_cspr=$(python3 -c "print(round($reserve_cspr * $price, 2))")
-    
-    # Render Clean List (No Borders)
+
+    local depth_sol
+    depth_sol=$(python3 -c "print(round(float('$reserve_sol') * float('$price'), 2))" 2>/dev/null) || depth_sol="0"
+
+    local data_tag=""
+    if [[ "$is_sim" == "SIM" ]]; then
+        data_tag="${C_DIM}[simulated]${C_RESET}"
+    else
+        data_tag="${C_SUCCESS}[LIVE]${C_RESET}"
+    fi
+
     echo -e "${C_WHITE}"
-    printf "  ${C_BOLD}CSPR/mUSD${C_RESET}      ${C_CYAN}\$%.6f${C_WHITE}  ${change_color}%s %.2f%s${C_WHITE}\n" "$price" "$change_arrow" "$change" "%"
+    printf "  ${C_BOLD}SOL/USDC${C_RESET}       ${C_CYAN}\$%.2f${C_WHITE}  ${change_color}%s %.2f%s${C_WHITE}  %b\n" "$price" "$change_arrow" "$change" "%" "$data_tag"
     echo "  ────────────────────────────────────────"
-    printf "  Pool A:         ${C_CYAN}%-10s CSPR${C_WHITE} (\$%s)\n" "$(printf "%'d" $reserve_cspr)" "$(printf "%'d" ${depth_cspr%.*})"
-    printf "  Pool B:         ${C_CYAN}%-10s mUSD${C_WHITE} (Vol: \$%s)\n" "$(printf "%'.2f" $reserve_musd)" "$(printf "%'d" $volume)"
-    printf "  LP Tokens:      ${C_PURPLE}%-10s${C_WHITE}      (Fee: 0.3%%)\n" "$(printf "%'d" $lp_tokens)"
+    printf "  Pool A:         ${C_CYAN}%-10s SOL${C_WHITE} (\$%s)\n" "$(printf "%'d" ${reserve_sol} 2>/dev/null || echo ${reserve_sol})" "$(printf "%'d" ${depth_sol%.*} 2>/dev/null || echo ${depth_sol%.*})"
+    printf "  Pool B:         ${C_CYAN}%-10s USDC${C_WHITE} (Vol: \$%s)\n" "$(printf "%'.2f" ${reserve_usdc} 2>/dev/null || echo ${reserve_usdc})" "$(printf "%'d" ${volume} 2>/dev/null || echo ${volume})"
+    printf "  LP Tokens:      ${C_PURPLE}%-10s${C_WHITE}      (Fee: 0.3%%)\n" "$(printf "%'d" ${lp_tokens} 2>/dev/null || echo ${lp_tokens})"
     echo -e "${C_RESET}"
 }
 
@@ -110,24 +129,25 @@ render_ticker() {
 render_sparkline() {
     local -a prices=("$@")
     local chars=(" " "▂" "▃" "▄" "▅" "▆" "▇" "█")
-    
-    # Find min/max
+
     local min max
     min=$(printf '%s\n' "${prices[@]}" | sort -n | head -1)
     max=$(printf '%s\n' "${prices[@]}" | sort -n | tail -1)
-    
+
     echo -ne "  ${C_DIM}Price 1h:${C_RESET} ${C_CYAN}"
-    
+
     for price in "${prices[@]}"; do
-        if (( $(echo "$max == $min" | bc -l) )); then
+        local is_eq
+        is_eq=$(python3 -c "print(1 if abs(float('$max') - float('$min')) < 0.001 else 0)" 2>/dev/null) || is_eq="1"
+        if [[ "$is_eq" == "1" ]]; then
             local idx=3
         else
-            # Ensure index is clamped between 0 and 7
-            local idx=$(python3 -c "val = int(($price - $min) / ($max - $min) * 7); print(max(0, min(7, val)))")
+            local idx
+            idx=$(python3 -c "val = int((float('$price') - float('$min')) / (float('$max') - float('$min')) * 7); print(max(0, min(7, val)))" 2>/dev/null) || idx=3
         fi
         echo -n "${chars[$idx]}"
     done
-    
+
     echo -e "${C_RESET}"
 }
 
@@ -137,49 +157,47 @@ render_sparkline() {
 
 run_ticker() {
     hide_cursor
-    trap "show_cursor; return" INT TERM
-    
+    trap "show_cursor; return 0" INT TERM
+
     local price_history=()
-    
+
     echo -e "${C_DIM}Press Ctrl+C to return to menu${C_RESET}"
     echo ""
-    
-    # Save cursor position at start of widget area
-    tput sc
-    
+
+    tput sc 2>/dev/null || true
+
     while true; do
-        # Restore cursor to top of widget area
-        tput rc
-        
-        # Get current data
+        tput rc 2>/dev/null || true
+
         local data
-        data=$(get_price_data)
-        
-        # Extract price for history
+        data=$(get_price_data) || true
+
+        if [[ -z "$data" ]]; then
+            echo -e "${C_WARN}  Waiting for data...${C_RESET}"
+            sleep 2
+            continue
+        fi
+
         local current_price
-        current_price=$(echo "$data" | python3 -c "import sys,json; print(json.load(sys.stdin)['price'])")
-        
-        # Add to history (keep last 20)
+        current_price=$(echo "$data" | python3 -c "import sys,json; print(json.load(sys.stdin)['price'])" 2>/dev/null) || current_price="0"
+
         price_history+=("$current_price")
         if (( ${#price_history[@]} > 20 )); then
             price_history=("${price_history[@]:1}")
         fi
-        
-        # Render Frame
+
         render_ticker "$data"
-        
-        # Render Sparkline
+
         if (( ${#price_history[@]} >= 5 )); then
             render_sparkline "${price_history[@]}"
         else
-             echo ""
+            echo ""
         fi
-        
+
         echo -e "${C_DIM}Last update: $(date '+%H:%M:%S') │ Updates every 2s${C_RESET}"
-        
-        # Clear any remaining artifacts below this point
-        tput ed
-        
+
+        tput ed 2>/dev/null || true
+
         sleep 2
     done
 }
@@ -191,9 +209,8 @@ run_ticker() {
 ticker_menu() {
     clear_screen
     show_banner
-    
+
     draw_section "Live Market Ticker"
-    
-    
+
     run_ticker
 }

@@ -67,6 +67,7 @@ show_banner() {
     ║   ╚═════╝ ╚═╝  ╚═╝╚══════╝   ╚═╝    ▀▀▀▀▀▀▀▀   ╚═════╝ ╚═╝  ╚═══╝   ║
     ║                                                                     ║
     ║              ━━━━  ZK-POWERED ANTI-MEV DARK POOL  ━━━━              ║
+    ║                        ─── on Solana ───                            ║
     ╚═════════════════════════════════════════════════════════════════════╝
 EOF
     echo -e "${C_RESET}"
@@ -76,9 +77,9 @@ EOF
 # Status Bar - Network, Connection, Block Height
 # ═══════════════════════════════════════════════════════════════════
 show_status_bar() {
-    local network="${1:-casper-test}"
+    local network="${1:-solana-devnet}"
     local status="${2:-connected}"
-    local block="${3:-...}"
+    local slot="${3:-...}"
     local identity="${4:-user}"
     
     local status_icon status_color
@@ -94,7 +95,7 @@ show_status_bar() {
     printf " %-20s │ %b%-12s${C_RESET}${C_BG_DARK}${C_WHITE} │ %-18s │ %b%-15s${C_RESET}${C_BG_DARK}${C_WHITE} \n" \
         "Network: ${network}" \
         "${status_color}${status_icon} " "${status}" \
-        "Block: #${block}" \
+        "Slot: #${slot}" \
         "${C_PURPLE}♜ " "${identity}"
     echo -e "${C_RESET}"
 }

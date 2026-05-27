@@ -16,7 +16,7 @@ simulate_zk_proof() {
     draw_section "ZK Proof Generation"
     
     echo -e "${C_DIM}Order Details:${C_RESET}"
-    echo -e "  Amount: ${C_CYAN}$amount CSPR${C_RESET}"
+    echo -e "  Amount: ${C_CYAN}$amount SOL${C_RESET}"
     echo -e "  Side:   ${C_YELLOW}$side${C_RESET}"
     echo ""
     
@@ -27,14 +27,13 @@ simulate_zk_proof() {
         printf "\r${C_CYAN}⠙${C_RESET} Generating witness from order inputs.%s" "$(printf '.%.0s' $(seq 1 $i))"
         sleep 0.3
     done
-    local witness=$(openssl rand -hex 32)
+    local witness=$(openssl rand -hex 32 2>/dev/null || python3 -c "import os; print(os.urandom(32).hex())")
     printf "\r${C_SUCCESS}${ICON_SUCCESS}${C_RESET} Witness generated: ${C_DIM}${witness:0:16}...${C_RESET}\n"
     
     # Step 2: Compute Groth16 Proof
     echo -e "${C_CYAN}⠋${C_RESET} Computing Groth16 proof..."
     sleep 0.3
     
-    # Animated progress bar
     for i in $(seq 1 20); do
         local pct=$((i * 5))
         local filled=$((i * 2))
@@ -45,11 +44,11 @@ simulate_zk_proof() {
             "$pct"
         sleep 0.08
     done
-    local proof=$(openssl rand -hex 64)
+    local proof=$(openssl rand -hex 64 2>/dev/null || python3 -c "import os; print(os.urandom(64).hex())")
     printf "\r${C_SUCCESS}${ICON_SUCCESS}${C_RESET} Groth16 proof computed                                    \n"
     
     # Step 3: Serialize for chain
-    echo -e "${C_CYAN}⠋${C_RESET} Serializing proof for blockchain..."
+    echo -e "${C_CYAN}⠋${C_RESET} Serializing proof for Solana transaction..."
     sleep 0.4
     printf "\r${C_SUCCESS}${ICON_SUCCESS}${C_RESET} Proof serialized (${C_DIM}184 bytes${C_RESET})              \n"
     
@@ -63,7 +62,6 @@ simulate_zk_proof() {
     echo -e "  ${C_DIM}Nullifier:${C_RESET}  ${C_PURPLE}0x${witness:0:32}...${C_RESET}"
     echo ""
     
-    # Return values
     echo "$commitment:$proof:$witness"
 }
 
@@ -89,13 +87,14 @@ show_zk_explainer() {
   The commitment proves your order is:
     ✓ Valid (follows exchange rules)
     ✓ Funded (you have the balance)
-    ✓ Unique (can't be replayed)
+    ✓ Unique (can't be replayed — nullifier prevents double-spend)
     
   Without revealing:
     ✗ Order amount
     ✗ Order direction (buy/sell)
     ✗ Limit price
     
+  Solana verifies the proof on-chain within a single transaction.
 EOF
 }
 
@@ -105,16 +104,14 @@ zk_demo() {
     
     draw_section "ZK-SNARK Proof Generation Demo"
     
-    # Get order details
     local amount
-    amount=$(~/.local/bin/gum input --placeholder "Order amount in CSPR" --value "100")
+    amount=$(gum input --placeholder "Order amount in SOL" --value "10")
     
     local side
-    side=$(~/.local/bin/gum choose "BUY" "SELL")
+    side=$(gum choose "BUY" "SELL")
     
     echo ""
     
-    # Generate proof
     local result
     result=$(simulate_zk_proof "$amount" "$side" 2>&1 | tee /dev/tty | tail -1)
     
@@ -124,7 +121,7 @@ zk_demo() {
     echo ""
     show_zk_explainer
     
-    ~/.local/bin/gum input --placeholder "Press Enter to continue..."
+    gum input --placeholder "Press Enter to continue..."
 }
 
 # ═══════════════════════════════════════════════════════════════════
@@ -143,7 +140,7 @@ zkproof_menu() {
         echo ""
         
         local choice
-        choice=$(~/.local/bin/gum choose \
+        choice=$(gum choose \
             "Generate New Proof" \
             "How ZK Proofs Work" \
             "← Back to Main Menu")
@@ -157,7 +154,7 @@ zkproof_menu() {
                 show_banner
                 show_zk_explainer
                 echo ""
-                ~/.local/bin/gum input --placeholder "Press Enter to continue..."
+                gum input --placeholder "Press Enter to continue..."
                 ;;
             "← Back to Main Menu"|"")
                 break

@@ -88,7 +88,7 @@ function App() {
             <div className="w-px h-full bg-swiss-white/5 absolute right-1/4"></div>
       </div>
 
-      <div className="relative z-30 w-full min-h-screen">
+      <main id="main-content" className="relative z-30 w-full min-h-screen">
         
         {/* Navigation / Header */}
         <header className="fixed top-0 left-0 w-full p-8 flex justify-between items-start mix-blend-difference z-50">
@@ -96,12 +96,12 @@ function App() {
                 BASTION PROTOCOL <span className="text-xs font-bold tracking-widest leading-none text-black bg-swiss-accent px-2 py-0.5 rounded-xl">V0.9.4 BETA</span>
             </div>
             <div className="text-right text-xs font-bold tracking-widest leading-none">
-                CASPER NETWORK v2
+                SOLANA NETWORK
             </div>
         </header>
 
         {/* HERO SECTION */}
-        <section className="relative w-full h-screen flex flex-col justify-center items-center px-4 overflow-hidden">
+        <section id="hero-section" className="relative w-full h-screen flex flex-col justify-center items-center px-4 overflow-hidden">
             {/* Massive Title */}
             <h1 ref={heroTextRef} className="font-swiss text-massive text-swiss-white font-bold uppercase text-center leading-[0.8] tracking-tighter mix-blend-difference select-none">
                 <div className="overflow-hidden">
@@ -115,7 +115,7 @@ function App() {
             <div ref={heroSubRef} className="mt-12 flex flex-col items-center gap-8 max-w-xl w-full z-20">
                 <p className="font-swiss text-sm font-medium tracking-wide text-center text-swiss-white/60">
                     PRIVACY PRESERVING DARK POOL TRADING INFRASTRUCTURE.<br/>
-                    BUILT ON CASPER. POWERED BY ZK-SNARKS.
+                    BUILT ON SOLANA. POWERED BY ZK-SNARKS.
                 </p>
                 <InstallSnippet />
             </div>
@@ -130,7 +130,7 @@ function App() {
         <div className="relative w-full text-swiss-white">
             
             {/* Feature 01 */}
-            <section className="feature-section relative min-h-screen flex items-center px-8 py-24 border-t border-swiss-white/10">
+            <section id="feature-dark-liquidity" className="feature-section relative min-h-screen flex items-center px-8 py-24 border-t border-swiss-white/10">
                 <div className="content-block w-full max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
                     <div className="order-2 md:order-1">
                         <img src="/DrkPl.png" alt="Dark Pool Trading Demo" className="w-full h-auto object-contain rounded-lg border border-swiss-white/10" />
@@ -148,7 +148,7 @@ function App() {
             </section>
 
              {/* Feature 02 */}
-             <section className="feature-section relative min-h-screen flex items-center px-8 py-24 border-t border-swiss-white/10">
+             <section id="feature-zero-knowledge" className="feature-section relative min-h-screen flex items-center px-8 py-24 border-t border-swiss-white/10">
                 <div className="content-block w-full max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
                     <div className="md:pr-16">
                          <span className="text-swiss-accent text-xs font-bold tracking-widest mb-4 block">02. ZERO KNOWLEDGE</span>
@@ -156,7 +156,7 @@ function App() {
                              MATH<br/>NOT TRUST.
                          </h2>
                          <p className="text-neutral-400 max-w-md text-lg leading-relaxed">
-                             Solvency is guaranteed by ZK-SNARKs on Casper. Prove you have the funds without revealing your balance.
+                             Solvency is guaranteed by ZK-SNARKs on Solana. Prove you have the funds without revealing your balance.
                          </p>
                     </div>
                     <div>
@@ -166,7 +166,7 @@ function App() {
             </section>
 
             {/* Feature 03 - Diagonal */}
-            <section className="feature-section relative min-h-[80vh] flex items-center justify-center px-8 py-24 overflow-hidden border-t border-swiss-white/10">
+            <section id="feature-public-amm" className="feature-section relative min-h-[80vh] flex items-center justify-center px-8 py-24 overflow-hidden border-t border-swiss-white/10">
                 <div className="absolute inset-0 transform -skew-y-3 bg-swiss-white/5 origin-top-left scale-110 pointer-events-none"></div>
                 <div className="content-block relative z-10 text-center flex flex-col items-center">
                      <h2 className="text-6xl md:text-9xl font-bold tracking-tighter leading-none mb-4 mix-blend-exclusion">
@@ -180,7 +180,7 @@ function App() {
                 </div>
             </section>
         </div>
-      </div>
+      </main>
 
       {/* FINAL SECTION - Outside main wrapper so rook appears above it */}
       <div className="relative z-[15] w-full text-swiss-white">
@@ -210,7 +210,7 @@ function App() {
                         © 2026 BASTION PROTOCOL. ALL RIGHTS RESERVED.
                     </div>
                     <div className="flex items-center gap-6">
-                        <a href="https://x.com/bastioncspr" className="text-white hover:text-swiss-accent transition-colors flex items-center gap-2" target="_blank" rel="noopener noreferrer">
+                        <a href="https://x.com/bastion_sol" className="text-white hover:text-swiss-accent transition-colors flex items-center gap-2" target="_blank" rel="noopener noreferrer">
                             <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
                                 <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
                             </svg>

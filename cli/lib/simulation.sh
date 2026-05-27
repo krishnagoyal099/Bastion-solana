@@ -20,38 +20,35 @@ simulate_public_amm() {
     
     sleep 0.5
     
-    # Your transaction enters mempool
+    local attacked_price=$(python3 -c "print(round($price * 1.06, 2))")
+    
     echo -e "${C_WHITE}┌─ MEMPOOL ─────────────────────────────────────────────────────┐${C_RESET}"
     echo -e "${C_WHITE}│${C_RESET}"
-    echo -e "${C_WHITE}│${C_RESET}  ${C_CYAN}12:00:00.100${C_RESET} │ ${C_BOLD}[YOUR TX]${C_RESET} Swap ${C_CYAN}$amount CSPR${C_RESET} @ \$${price}"
+    echo -e "${C_WHITE}│${C_RESET}  ${C_CYAN}12:00:00.100${C_RESET} │ ${C_BOLD}[YOUR TX]${C_RESET} Swap ${C_CYAN}$amount SOL${C_RESET} @ \$${price}"
     echo -e "${C_WHITE}│${C_RESET}               │ Direction: ${C_SUCCESS}BUY${C_RESET} │ Status: ${C_YELLOW}PENDING${C_RESET}"
     sleep 0.8
     
-    # Bot detects
     echo -e "${C_WHITE}│${C_RESET}"
-    echo -e "${C_WHITE}│${C_RESET}  ${C_CYAN}12:00:00.105${C_RESET} │ ${ICON_BOT} ${C_ERROR}SANDWICH BOT DETECTED YOUR TX!${C_RESET}"
+    echo -e "${C_WHITE}│${C_RESET}  ${C_CYAN}12:00:00.102${C_RESET} │ ${ICON_BOT} ${C_ERROR}SANDWICH BOT DETECTED YOUR TX!${C_RESET}"
     echo -e "${C_WHITE}│${C_RESET}               │ ${C_DIM}Analyzing: amount=$amount, direction=BUY${C_RESET}"
     sleep 0.6
     
-    # Bot front-runs
     echo -e "${C_WHITE}│${C_RESET}"
-    echo -e "${C_WHITE}│${C_RESET}  ${C_CYAN}12:00:00.110${C_RESET} │ ${ICON_BOT} ${C_ERROR}[BOT FRONT-RUN]${C_RESET} Buy 500 CSPR"
-    echo -e "${C_WHITE}│${C_RESET}               │ ${C_ERROR}→ Price pushed: \$${price} → \$0.0265${C_RESET}"
+    echo -e "${C_WHITE}│${C_RESET}  ${C_CYAN}12:00:00.103${C_RESET} │ ${ICON_BOT} ${C_ERROR}[BOT FRONT-RUN]${C_RESET} Buy 50 SOL"
+    echo -e "${C_WHITE}│${C_RESET}               │ ${C_ERROR}→ Price pushed: \$${price} → \$${attacked_price}${C_RESET}"
     sleep 0.6
     
-    # Your tx executes at worse price
-    local slippage=$(python3 -c "print(round((0.0265 - $price) / $price * 100, 1))")
-    local loss=$(python3 -c "print(round($amount * 0.0265 - $amount * $price, 2))")
+    local slippage=$(python3 -c "print(round(($attacked_price - $price) / $price * 100, 1))")
+    local loss=$(python3 -c "print(round($amount * $attacked_price - $amount * $price, 2))")
     
     echo -e "${C_WHITE}│${C_RESET}"
-    echo -e "${C_WHITE}│${C_RESET}  ${C_CYAN}12:00:00.200${C_RESET} │ ${C_BOLD}[YOUR TX]${C_RESET} ${C_WARN}EXECUTED @ \$0.0265${C_RESET}"
+    echo -e "${C_WHITE}│${C_RESET}  ${C_CYAN}12:00:00.104${C_RESET} │ ${C_BOLD}[YOUR TX]${C_RESET} ${C_WARN}EXECUTED @ \$${attacked_price}${C_RESET}"
     echo -e "${C_WHITE}│${C_RESET}               │ ${C_ERROR}Slippage: -${slippage}%${C_RESET}"
     echo -e "${C_WHITE}│${C_RESET}               │ ${C_ERROR}Value Lost: -\$${loss}${C_RESET}"
     sleep 0.6
     
-    # Bot back-runs
     echo -e "${C_WHITE}│${C_RESET}"
-    echo -e "${C_WHITE}│${C_RESET}  ${C_CYAN}12:00:00.210${C_RESET} │ ${ICON_BOT} ${C_ERROR}[BOT BACK-RUN]${C_RESET} Sell 500 CSPR"
+    echo -e "${C_WHITE}│${C_RESET}  ${C_CYAN}12:00:00.105${C_RESET} │ ${ICON_BOT} ${C_ERROR}[BOT BACK-RUN]${C_RESET} Sell 50 SOL"
     echo -e "${C_WHITE}│${C_RESET}               │ ${C_ERROR}Bot Profit: +\$${loss}${C_RESET}"
     echo -e "${C_WHITE}│${C_RESET}"
     echo -e "${C_WHITE}└────────────────────────────────────────────────────────────────┘${C_RESET}"
@@ -78,8 +75,7 @@ simulate_bastion() {
     
     sleep 0.5
     
-    # Your encrypted transaction
-    local commitment=$(openssl rand -hex 16)
+    local commitment=$(openssl rand -hex 16 2>/dev/null || python3 -c "import os; print(os.urandom(16).hex())")
     
     echo -e "${C_WHITE}┌─ ENCRYPTED MEMPOOL ───────────────────────────────────────────┐${C_RESET}"
     echo -e "${C_WHITE}│${C_RESET}"
@@ -87,9 +83,8 @@ simulate_bastion() {
     echo -e "${C_WHITE}│${C_RESET}               │ ${C_DIM}ZK Proof: ✓ Valid${C_RESET}"
     sleep 0.8
     
-    # Bot tries to analyze
     echo -e "${C_WHITE}│${C_RESET}"
-    echo -e "${C_WHITE}│${C_RESET}  ${C_CYAN}12:00:00.105${C_RESET} │ ${ICON_BOT} Bot scanning mempool..."
+    echo -e "${C_WHITE}│${C_RESET}  ${C_CYAN}12:00:00.102${C_RESET} │ ${ICON_BOT} Bot scanning mempool..."
     sleep 0.4
     echo -e "${C_WHITE}│${C_RESET}               │ ${ICON_HIDDEN} ${C_DIM}Cannot read order amount${C_RESET}"
     sleep 0.3
@@ -100,9 +95,8 @@ simulate_bastion() {
     echo -e "${C_WHITE}│${C_RESET}               │ ${ICON_BOT} ${C_WARN}Unable to front-run. Skipping.${C_RESET}"
     sleep 0.6
     
-    # Your tx executes perfectly
     echo -e "${C_WHITE}│${C_RESET}"
-    echo -e "${C_WHITE}│${C_RESET}  ${C_CYAN}12:00:00.200${C_RESET} │ ${C_BOLD}[YOUR TX]${C_RESET} ${C_SUCCESS}EXECUTED @ \$${price}${C_RESET}"
+    echo -e "${C_WHITE}│${C_RESET}  ${C_CYAN}12:00:00.104${C_RESET} │ ${C_BOLD}[YOUR TX]${C_RESET} ${C_SUCCESS}EXECUTED @ \$${price}${C_RESET}"
     echo -e "${C_WHITE}│${C_RESET}               │ ${C_SUCCESS}Slippage: 0.0%${C_RESET}"
     echo -e "${C_WHITE}│${C_RESET}               │ ${C_SUCCESS}MEV Extracted: \$0.00${C_RESET}"
     echo -e "${C_WHITE}│${C_RESET}"
@@ -121,42 +115,50 @@ simulate_bastion() {
 mev_demo() {
     clear_screen
     show_banner
-    
+
     draw_section "MEV Attack Simulation"
-    
+
     echo -e "${C_WHITE}This demo shows how sandwich attacks work on public DEXs"
     echo -e "and how Bastion protects your trades using ZK encryption.${C_RESET}"
     echo ""
-    
-    # Get simulation parameters
+    echo -e "${C_BOLD}${C_WARN}Real-World MEV Statistics (Solana):${C_RESET}"
+    echo -e "  • Solana slot time: ${C_CYAN}~400ms${C_RESET} — MEV bots operate in microseconds"
+    echo -e "  • Jito bundle tips: ${C_CYAN}>\$500M+${C_RESET} paid to validators by MEV searchers"
+    echo -e "  • Sandwich attacks: ${C_CYAN}~60%${C_RESET} of DEX trades are sandwiched on busy days"
+    echo -e "  • Average victim loss: ${C_CYAN}0.5-6%${C_RESET} of trade value per sandwich"
+    echo -e "  • ${C_DIM}Source: Jito Labs MEV Dashboard, Flashbots data${C_RESET}"
+    echo ""
+
     local amount
-    amount=$(~/.local/bin/gum input --placeholder "Trade amount (CSPR)" --value "100")
-    
-    local price="0.025"
-    
+    amount=$(gum input --placeholder "Trade amount (SOL)" --value "10") || true
+    [[ -z "$amount" ]] && return
+
+    local price="172.50"
+
     echo ""
     echo -e "${C_BOLD}Simulation Parameters:${C_RESET}"
-    echo -e "  Trade: ${C_CYAN}$amount CSPR${C_RESET}"
+    echo -e "  Trade: ${C_CYAN}$amount SOL${C_RESET} (~\$$(python3 -c "print(round(float('$amount') * $price, 2))" 2>/dev/null || echo 0))"
     echo -e "  Price: ${C_CYAN}\$${price}${C_RESET}"
+    echo -e "  ${C_DIM}[SIMULATION — no real funds are used]${C_RESET}"
     echo ""
-    
-    ~/.local/bin/gum confirm "Run simulation?" && {
-        echo ""
-        echo -e "${C_BOLD}━━━ SCENARIO A: Public AMM (Vulnerable) ━━━${C_RESET}"
-        echo ""
-        simulate_public_amm "$amount" "$price"
-        
-        echo ""
-        ~/.local/bin/gum input --placeholder "Press Enter to see Bastion protection..."
-        echo ""
-        
-        echo -e "${C_BOLD}━━━ SCENARIO B: Bastion Dark Pool (Protected) ━━━${C_RESET}"
-        echo ""
-        simulate_bastion "$amount" "$price"
-    }
-    
+
+    gum confirm "Run simulation?" || { echo ""; return; }
+
     echo ""
-    ~/.local/bin/gum input --placeholder "Press Enter to continue..."
+    echo -e "${C_BOLD}━━━ SCENARIO A: Public AMM (Vulnerable) ━━━${C_RESET}"
+    echo ""
+    simulate_public_amm "$amount" "$price"
+
+    echo ""
+    gum input --placeholder "Press Enter to see Bastion protection..." || true
+    echo ""
+
+    echo -e "${C_BOLD}━━━ SCENARIO B: Bastion Dark Pool (Protected) ━━━${C_RESET}"
+    echo ""
+    simulate_bastion "$amount" "$price"
+
+    echo ""
+    gum input --placeholder "Press Enter to continue..." || true
 }
 
 # ═══════════════════════════════════════════════════════════════════
@@ -175,6 +177,7 @@ show_comparison() {
     printf "│ %-20s │ ${C_ERROR}%-18s${C_WHITE} │ ${C_SUCCESS}%-18s${C_WHITE} │\n" "Sandwich Attacks" "Vulnerable" "Impossible"
     printf "│ %-20s │ ${C_WARN}%-18s${C_WHITE} │ ${C_SUCCESS}%-18s${C_WHITE} │\n" "Slippage" "Variable" "Minimal"
     printf "│ %-20s │ ${C_ERROR}%-18s${C_WHITE} │ ${C_SUCCESS}%-18s${C_WHITE} │\n" "Front-running" "Common" "Prevented"
+    printf "│ %-20s │ ${C_DIM}%-18s${C_WHITE} │ ${C_SUCCESS}%-18s${C_WHITE} │\n" "Execution Speed" "~400ms" "~400ms"
     printf "└──────────────────────┴────────────────────┴────────────────────┘\n"
     echo -e "${C_RESET}"
 }
@@ -194,11 +197,13 @@ simulation_menu() {
         echo ""
         
         local choice
-        choice=$(~/.local/bin/gum choose \
+        choice=$(gum choose \
             "Run MEV Attack Demo" \
             "View Comparison Table" \
-            "← Back to Main Menu")
-        
+            "← Back to Main Menu") || true
+
+        [[ -z "$choice" ]] && break
+
         case "$choice" in
             "Run MEV Attack Demo")
                 mev_demo
@@ -208,7 +213,7 @@ simulation_menu() {
                 show_banner
                 show_comparison
                 echo ""
-                ~/.local/bin/gum input --placeholder "Press Enter to continue..."
+                gum input --placeholder "Press Enter to continue..." || true
                 ;;
             "← Back to Main Menu"|"")
                 break

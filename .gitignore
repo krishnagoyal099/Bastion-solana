@@ -18,6 +18,7 @@ cli/config/
 
 # Node modules
 node_modules/
+landing-page/node_modules/
 
 # Build logs
 *.log
@@ -34,3 +35,12 @@ build.log
 # Lock files (for clean commits)
 Cargo.lock
 cli/config/contracts.env
+
+# Blockchain local state
+test-ledger/
+.anchor/
+*.codebase_dump.txt
+
+
+
+
