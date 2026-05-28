@@ -35,21 +35,21 @@ export BOX_TL_D='╔' BOX_TR_D='╗' BOX_BL_D='╚' BOX_BR_D='╝'
 export BOX_H_D='═' BOX_V_D='║'
 
 # Icons
-export ICON_SUCCESS='✓'
-export ICON_ERROR='✗'
-export ICON_WARN='⚠'
-export ICON_INFO='ℹ'
-export ICON_ARROW='→'
-export ICON_DOT='●'
-export ICON_RING='○'
-export ICON_LOCK='🔐'
-export ICON_UNLOCK='🔓'
-export ICON_ROOK='♜'
-export ICON_WHALE='🐳'
-export ICON_BOT='🤖'
-export ICON_HIDDEN='🙈'
-export ICON_CHART='📊'
-export ICON_MONEY='💰'
+export ICON_SUCCESS='[+]'
+export ICON_ERROR='[-]'
+export ICON_WARN='[!]'
+export ICON_INFO='[*]'
+export ICON_ARROW='>>'
+export ICON_DOT='::' 
+export ICON_RING='..'
+export ICON_LOCK='[>]'
+export ICON_UNLOCK='[<]'
+export ICON_ROOK='::' 
+export ICON_WHALE='[W]'
+export ICON_BOT='[B]'
+export ICON_HIDDEN='[?]'
+export ICON_CHART='[%]'
+export ICON_MONEY='[$]'
 
 # ═══════════════════════════════════════════════════════════════════
 # ASCII Banner - BASTION with Rook-styled I
@@ -96,7 +96,7 @@ show_status_bar() {
         "Network: ${network}" \
         "${status_color}${status_icon} " "${status}" \
         "Slot: #${slot}" \
-        "${C_PURPLE}♜ " "${identity}"
+        "${C_PURPLE}:: " "${identity}"
     echo -e "${C_RESET}"
 }
 
@@ -113,7 +113,7 @@ pipeline_step() {
             echo -e "${C_DIM}  ○ ${label}${C_RESET}"
             ;;
         active)
-            echo -e "${C_CYAN}  ◐ ${label}...${C_RESET}"
+            echo -e "${C_CYAN}  [.] ${label}...${C_RESET}"
             ;;
         done)
             echo -e "${C_SUCCESS}  ${ICON_SUCCESS} ${label}${C_RESET}"

@@ -98,7 +98,7 @@ else:
     print('  ' + '─' * 96)
     
     for tx in data[:10]:
-        status = '✓' if tx.get('status') == 'success' else '✗'
+        status = '[+]' if tx.get('status') == 'success' else '[-]'
         type_str = tx.get('type', 'unknown')
         sig = tx.get('hash', '')[:44] + '...'
         slot = str(tx.get('slot', ''))
@@ -212,17 +212,17 @@ if filter_type:
 txs = sorted(txs, key=lambda x: x.get("timestamp", ""), reverse=True)[:$limit]
 
 status_icons = {
-    "success": "✓",
-    "failed": "✗",
-    "pending": "◐"
+    "success": "[+]",
+    "failed": "[-]",
+    "pending": "[.]"
 }
 
 type_icons = {
-    "mint": "🪙",
-    "swap": "🔄",
-    "deposit": "💰",
-    "order": "📜",
-    "withdraw": "📤"
+    "mint": "[M]",
+    "swap": "[S]",
+    "deposit": "[$]",
+    "order": "[=]",
+    "withdraw": "[^]"
 }
 
 if not txs:
@@ -267,7 +267,7 @@ with open('$LEDGER_FILE', 'r') as f:
     data = json.load(f)
 
 for tx in sorted(data.get("transactions", []), key=lambda x: x.get("timestamp", ""), reverse=True):
-    status = "✓" if tx.get("status") == "success" else "✗" if tx.get("status") == "failed" else "◐"
+    status = "[+]" if tx.get("status") == "success" else "[-]" if tx.get("status") == "failed" else "[.]"
     print(f"{status} | {tx.get('type', ''):<8} | {tx.get('amount', ''):<12} | {tx.get('hash', '')[:20]}... | {tx.get('timestamp', '')[:16]}")
 PYEOF
 )

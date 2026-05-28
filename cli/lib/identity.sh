@@ -191,7 +191,7 @@ identity_list() {
         
         local key_path="$KEYS_DIR/$key_file"
         if [[ ! -f "$key_path" ]]; then
-            status="${C_ERROR}✗ MISSING${C_RESET}"
+            status="${C_ERROR}[-] MISSING${C_RESET}"
         fi
         
         if [[ ${#desc} -gt 30 ]]; then

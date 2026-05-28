@@ -126,7 +126,7 @@ arbitrage_menu() {
         show_banner
         
         echo -e "${C_WARN}╔════════════════════════════════════════════════════════════════╗${C_RESET}"
-        echo -e "${C_WARN}║              ⚠️  [SIMULATION] ARBITRAGE SCANNER                ║${C_RESET}"
+        echo -e "${C_WARN}║              [!]  [SIMULATION] ARBITRAGE SCANNER                ║${C_RESET}"
         echo -e "${C_WARN}╚════════════════════════════════════════════════════════════════╝${C_RESET}"
         echo ""
         echo -e "${C_DIM}This feature uses SIMULATED oracle prices for demonstration.${C_RESET}"

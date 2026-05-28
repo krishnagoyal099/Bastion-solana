@@ -119,7 +119,7 @@ whale_menu() {
     show_banner
     
     echo -e "${C_WARN}╔════════════════════════════════════════════════════════════════╗${C_RESET}"
-    echo -e "${C_WARN}║             ⚠️  [SIMULATION] WHALE MODE - ICEBERG ORDERS       ║${C_RESET}"
+    echo -e "${C_WARN}║             [!]  [SIMULATION] WHALE MODE - ICEBERG ORDERS       ║${C_RESET}"
     echo -e "${C_WARN}╚════════════════════════════════════════════════════════════════╝${C_RESET}"
     echo ""
     echo -e "${C_WHITE}Execute large orders with minimal market impact (simulated).${C_RESET}"

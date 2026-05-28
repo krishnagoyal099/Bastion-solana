@@ -77,22 +77,22 @@ show_zk_explainer() {
 │  └──────────┘      └──────────┘      └──────────┘              │
 │       ↓                                    ↓                    │
 │  ┌──────────┐                        ┌──────────┐              │
-│  │ Amount   │                        │ ✓ Valid  │              │
-│  │ Price    │   NEVER REVEALED       │ ✓ Funded │              │
-│  │ Side     │   ON-CHAIN!            │ ✓ Unique │              │
+│  │ Amount   │                        │ [+] Valid  │              │
+│  │ Price    │   NEVER REVEALED       │ [+] Funded │              │
+│  │ Side     │   ON-CHAIN!            │ [+] Unique │              │
 │  └──────────┘                        └──────────┘              │
 │                                                                 │
 └─────────────────────────────────────────────────────────────────┘
 
   The commitment proves your order is:
-    ✓ Valid (follows exchange rules)
-    ✓ Funded (you have the balance)
-    ✓ Unique (can't be replayed — nullifier prevents double-spend)
+    [+] Valid (follows exchange rules)
+    [+] Funded (you have the balance)
+    [+] Unique (can't be replayed — nullifier prevents double-spend)
     
   Without revealing:
-    ✗ Order amount
-    ✗ Order direction (buy/sell)
-    ✗ Limit price
+    [-] Order amount
+    [-] Order direction (buy/sell)
+    [-] Limit price
     
   Solana verifies the proof on-chain within a single transaction.
 EOF

@@ -274,19 +274,19 @@ main_menu() {
 
         local choice
         choice=$(gum choose --cursor.foreground="117" --selected.foreground="114" \
-            "🔐  Quick Trade (Bastion Dark Pool)" \
-            "💰  Deposit SOL / USDC" \
-            "📤  Withdraw" \
-            "💧  Liquidity Command Center" \
-            "👥  Identity Manager" \
-            "📜  Transaction Ledger" \
-            "📊  Live Market Ticker" \
-            "📉  Arbitrage Scanner" \
-            "🐳  Whale Mode (Iceberg Orders)" \
-            "⚔️   MEV Attack Simulation" \
-            "🔬  ZK Proof Demo" \
-            "⚙️   Settings" \
-            "🚪  Exit") || true
+            "[>]  Quick Trade (Bastion Dark Pool)" \
+            "[$]  Deposit SOL / USDC" \
+            "[^]  Withdraw" \
+            "[~]  Liquidity Command Center" \
+            "[#]  Identity Manager" \
+            "[=]  Transaction Ledger" \
+            "[%]  Live Market Ticker" \
+            "[<]  Arbitrage Scanner" \
+            "[W]  Whale Mode (Iceberg Orders)" \
+            "[!]  MEV Attack Simulation" \
+            "[Z]  ZK Proof Demo" \
+            "[*]  Settings" \
+            "[x]  Exit") || true
 
         # If gum was cancelled (Ctrl+C), treat as continue
         [[ -z "$choice" ]] && continue
@@ -331,7 +331,7 @@ main_menu() {
             *"Exit"*)
                 clear_screen
                 echo -e "${C_PURPLE}${C_BOLD}"
-                echo "  Thanks for using Bastion! ♜"
+                echo "  Thanks for using Bastion! ::"
                 echo -e "${C_RESET}"
                 exit 0
                 ;;
@@ -486,7 +486,7 @@ show_help() {
     echo "  bastion config set-network devnet"
     echo "  bastion ticker                   # Live price ticker"
     echo ""
-    echo -e "${C_DIM}Install: curl -fsSL https://raw.githubusercontent.com/krishnagoyal099/bastion/main/install-cli.sh | bash${C_RESET}"
+    echo -e "${C_DIM}Install: curl -fsSL https://raw.githubusercontent.com/krishnagoyal099/Bastion-solana/main/install-cli.sh | bash${C_RESET}"
     echo ""
 }
 

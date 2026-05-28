@@ -14,7 +14,7 @@ simulate_public_amm() {
     
     echo -e "${C_ERROR}${C_BOLD}"
     echo "╔══════════════════════════════════════════════════════════════╗"
-    echo "║              ⚠️  PUBLIC MEMPOOL - UNPROTECTED                 ║"
+    echo "║              [!]  PUBLIC MEMPOOL - UNPROTECTED                 ║"
     echo "╚══════════════════════════════════════════════════════════════╝"
     echo -e "${C_RESET}"
     
@@ -69,7 +69,7 @@ simulate_bastion() {
     
     echo -e "${C_SUCCESS}${C_BOLD}"
     echo "╔══════════════════════════════════════════════════════════════╗"
-    echo "║              🔐 BASTION ENCRYPTED MEMPOOL                    ║"
+    echo "║              [>] BASTION ENCRYPTED MEMPOOL                    ║"
     echo "╚══════════════════════════════════════════════════════════════╝"
     echo -e "${C_RESET}"
     
@@ -80,7 +80,7 @@ simulate_bastion() {
     echo -e "${C_WHITE}┌─ ENCRYPTED MEMPOOL ───────────────────────────────────────────┐${C_RESET}"
     echo -e "${C_WHITE}│${C_RESET}"
     echo -e "${C_WHITE}│${C_RESET}  ${C_CYAN}12:00:00.100${C_RESET} │ ${C_BOLD}[YOUR TX]${C_RESET} Commitment: ${C_PURPLE}0x${commitment}...${C_RESET}"
-    echo -e "${C_WHITE}│${C_RESET}               │ ${C_DIM}ZK Proof: ✓ Valid${C_RESET}"
+    echo -e "${C_WHITE}│${C_RESET}               │ ${C_DIM}ZK Proof: [+] Valid${C_RESET}"
     sleep 0.8
     
     echo -e "${C_WHITE}│${C_RESET}"
