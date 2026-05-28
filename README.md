@@ -1,147 +1,208 @@
 <div align="center">
-  <img src="./assets/logo.png" alt="Bastion Logo" width="120" />
-  <h1>♜ Bastion Protocol</h1>
-  <p><strong>Privacy-preserving dark pool trading on Solana. Powered by Zero-Knowledge Proofs.</strong></p>
-  <p>
-    <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-purple.svg" alt="License: MIT" /></a>
-    <a href="https://solana.com"><img src="https://img.shields.io/badge/Solana-v1.18+-00D1A0.svg" alt="Solana" /></a>
-    <a href="https://www.anchor-lang.com"><img src="https://img.shields.io/badge/Anchor-0.31.1-blue.svg" alt="Anchor" /></a>
-  </p>
+  <img src="./assets/logo.png" alt="Bastion Logo" width="140" />
+  <h1>Bastion Protocol</h1>
+  <p><strong>ZK-powered dark pool trading on Solana — your trades stay invisible.</strong></p>
+  <br/>
+  <a href="https://bastion-solana.vercel.app"><img src="https://img.shields.io/badge/Website-bastion--solana.vercel.app-8B5CF6?style=for-the-badge" alt="Website" /></a>
+  <br/><br/>
+  <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-purple.svg" alt="License: MIT" /></a>
+  <a href="https://solana.com"><img src="https://img.shields.io/badge/Solana-v1.18+-00D1A0.svg" alt="Solana" /></a>
+  <a href="https://www.anchor-lang.com"><img src="https://img.shields.io/badge/Anchor-0.31.1-blue.svg" alt="Anchor" /></a>
+  <a href="https://github.com/krishnagoyal099/Bastion-solana"><img src="https://img.shields.io/badge/Status-Live_on_Devnet-brightgreen.svg" alt="Status" /></a>
 </div>
 
 ---
 
-## ⚡ What is Bastion?
+## The Problem
 
-**Bastion** is a decentralized trading protocol and CLI-first application designed to completely eliminate MEV (Miner Extractable Value) attacks such as front-running and sandwiching. 
+Every time you trade on a public DEX, bots can see your transaction before it lands on-chain. They front-run you, sandwich you, and extract value from your trade. This is called **MEV (Maximal Extractable Value)** — and it costs Solana traders millions.
 
-By encrypting your orders using **ZK-SNARKs (Zero-Knowledge Proofs)** before they hit the Solana mempool, Bastion ensures your trading intent remains invisible until execution. 
+## How Bastion Fixes It
 
-| The Problem | How Bastion Solves It |
-| :--- | :--- |
-| 🥪 **Sandwich Attacks** | Orders are encrypted. Predatory bots cannot see your trade size or direction. |
-| 🏃 **Front-running** | Commitment-based ordering means your intent is hidden until execution. |
-| 📊 **Price Impact** | Dark pool matching ensures large "whale" orders don't move the public market. |
-| 🔍 **Privacy** | ZK proofs verify your solvency and order validity without revealing account details. |
+Bastion is a **dark pool protocol** — your orders are encrypted using **Zero-Knowledge Proofs** before they enter the mempool. Nobody can see what you're trading, how much, or in which direction. The proof guarantees the order is valid without revealing anything about it.
+
+| Problem | Bastion's Solution |
+|:---|:---|
+| **Sandwich attacks** | Orders are encrypted — bots can't see your trade size or direction |
+| **Front-running** | Commitment-based ordering hides intent until execution |
+| **Price impact on large orders** | Dark pool matching keeps whale trades off the public orderbook |
+| **Privacy** | ZK proofs verify solvency without revealing account details |
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
-Get started trading in seconds using our interactive Terminal UI (TUI):
+Install and launch the interactive terminal in two commands:
 
 ```bash
-# 1. Install the Bastion CLI
+# Install the Bastion CLI
 curl -fsSL https://raw.githubusercontent.com/krishnagoyal099/Bastion-solana/main/install-cli.sh | bash
 
-# 2. Launch the trading terminal
+# Launch the trading terminal
 bastion
 ```
 
-*Note: The CLI provides an interactive menu. You can also run commands directly like `bastion trade`, `bastion deposit 5`, or `bastion ticker`.*
-
----
-
-## 🛠 Core Features
-
-- **🔐 Dark Pool Trading:** Submit orders as encrypted ZK commitments. Completely invisible to the mempool.
-- **💧 AMM Fallback:** Built-in constant-product AMM ensures instant execution when dark liquidity is scarce.
-- **📊 Live Market Ticker:** Real-time terminal pricing charts with sparklines and live spread detection.
-- **⚔️ MEV Attack Simulator:** Educational demo showcasing sandwich attacks on public DEXs versus Bastion's protection.
-- **🐳 Whale Mode (Iceberg Orders):** Automatically splits large orders into randomized chunks with time delays.
-- **👥 Multi-Identity:** Hot-swap between multiple Solana keypairs instantly.
-
----
-
-## 🏗 Architecture
-
-Bastion consists of a suite of Solana programs and a powerful client-side execution engine:
-
-```text
-┌────────────────────────────────────────────────────────────┐
-│                    BASTION CLI (bash/gum)                    │
-│  Trade │ Deposit │ Withdraw │ Liquidity │ Ticker │ ZK Demo  │
-└──────────────────────┬─────────────────────────────────────┘
-                       │
-          ┌────────────▼────────────┐
-          │   Solana Programs       │
-          │  ┌────────────────────┐ │
-          │  │  bastion-pool      │ │  ← ZK Dark Pool (commitments, proofs)
-          │  │  bastion-amm       │ │  ← Constant Product AMM (fallback liquidity)
-          │  └────────────────────┘ │
-          └────────────┬────────────┘
-                       │
-          ┌────────────▼────────────┐
-          │  Solana Network         │
-          │  localnet │ devnet      │
-          └─────────────────────────┘
+You can also run commands directly:
+```bash
+bastion trade                    # Open quick trade
+bastion deposit 5                # Deposit 5 SOL to the dark pool
+bastion withdraw 2               # Withdraw 2 SOL
+bastion ticker                   # Live market prices
+bastion config set-network devnet
 ```
 
 ---
 
-## 💻 Development & Building from Source
+## What's Inside
 
-### Prerequisites
-- [Rust](https://rustup.rs/) 1.75+
-- [Solana CLI](https://docs.solana.com/cli/install-solana-cli-tools) 1.18+
-- [Anchor](https://www.anchor-lang.com/docs/installation) 0.31.1
-- [gum](https://github.com/charmbracelet/gum) 0.14+ (For CLI UI)
+### On-Chain Programs (Solana Smart Contracts)
 
-### Build & Deploy locally
+| Program | Address (Devnet) | Purpose |
+|:---|:---|:---|
+| `bastion-pool` | `CbHS6twCMkYyodaEUtvonRV6HVBZnkGjekohLqXJziU5` | ZK dark pool — commitments, proofs, matching, settlement |
+| `bastion-amm` | `BvFgtfCEeCcMHoN1PRHSXkdzVYTka1NsrVBTeHmnDN2D` | Constant-product AMM — fallback liquidity when dark pool has no match |
+
+### CLI Terminal UI
+
+A full trading terminal built with `bash` and [`gum`](https://github.com/charmbracelet/gum):
+
+```
+[>]  Quick Trade          — Submit encrypted ZK orders
+[$]  Deposit / Withdraw   — Move funds in and out of the dark pool
+[~]  Liquidity Center     — Add/remove AMM liquidity
+[%]  Live Market Ticker   — Real-time prices with sparklines
+[<]  Arbitrage Scanner    — Detect cross-venue price gaps
+[W]  Whale Mode           — Iceberg orders (split large trades automatically)
+[!]  MEV Attack Simulator — See sandwich attacks vs. Bastion protection
+[Z]  ZK Proof Demo        — Interactive walkthrough of how ZK commitments work
+```
+
+### SDK & Tooling
+
+- **TypeScript SDK** (`sdk/`) — Programmatic access to dark pool and AMM
+- **Relayer** (`relayer/`) — Off-chain order matching and Jito MEV bundle submission
+- **Indexer** (`indexer/`) — Transaction parser for on-chain activity
+- **ZK Circuits** (`zk/`) — Halo2-based proof generation compiled to WASM
+
+---
+
+## Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                     BASTION CLI (bash/gum)                   │
+│  Trade | Deposit | Withdraw | Liquidity | Ticker | ZK Demo  │
+└───────────────────────┬─────────────────────────────────────┘
+                        │
+           ┌────────────▼────────────┐
+           │    TypeScript SDK       │
+           │    + Relayer Service    │
+           └────────────┬────────────┘
+                        │
+           ┌────────────▼────────────┐
+           │   Solana Programs       │
+           │  ┌────────────────────┐ │
+           │  │  bastion-pool      │ │  ZK Dark Pool
+           │  │  bastion-amm       │ │  Constant Product AMM
+           │  └────────────────────┘ │
+           └────────────┬────────────┘
+                        │
+           ┌────────────▼────────────┐
+           │  Solana Network         │
+           │  localnet | devnet      │
+           └─────────────────────────┘
+```
+
+---
+
+## Build from Source
+
+### Requirements
+
+| Tool | Version | Install |
+|:---|:---|:---|
+| Rust | 1.75+ | [rustup.rs](https://rustup.rs/) |
+| Solana CLI | 1.18+ | [docs.solana.com](https://docs.solana.com/cli/install-solana-cli-tools) |
+| Anchor | 0.31.1 | [anchor-lang.com](https://www.anchor-lang.com/docs/installation) |
+| Node.js | 18+ | [nodejs.org](https://nodejs.org/) |
+| gum | 0.14+ | [github.com/charmbracelet/gum](https://github.com/charmbracelet/gum) |
+
+### Steps
 
 ```bash
-# 1. Clone the repository
+# Clone
 git clone https://github.com/krishnagoyal099/Bastion-solana.git
 cd Bastion-solana
 
-# 2. Build the Solana programs
+# Build smart contracts
 anchor build
 
-# 3. Start a local validator and deploy
+# Start local validator + deploy
 solana-test-validator --reset &
 anchor deploy
 
-# 4. Initialize the pool
+# Initialize the pool
 npm install
 npx ts-node scripts/init-pool.ts
 
-# 5. Run the CLI
+# Launch the CLI
 ./cli/bastion
 ```
 
-### Network Configuration
+### Switch Networks
 
-Switch between networks instantly using the CLI:
 ```bash
-bastion config set-network devnet
-bastion config set-network localnet
+bastion config set-network devnet     # Use Solana devnet
+bastion config set-network localnet   # Use local validator
+bastion config show                   # View current config
 ```
 
 ---
 
-## 🛡️ Security Guarantees
+## Security
 
-- **Mathematically Proven:** All orders are hidden behind SHA-256 commitments and validated strictly via ZK proofs.
-- **No Double Spends:** A robust nullifier system prevents replay attacks.
-- **Trustless Escrow:** Pool funds are locked in PDA-derived vaults. No admin keys can drain liquidity.
-- **MEV-Immune:** By structurally hiding order parameters, MEV bots lack the data required to attack.
+- **Encrypted orders** — All trades are hidden behind SHA-256 commitments, validated via ZK proofs
+- **No replay attacks** — Nullifier system prevents double-spend
+- **Trustless escrow** — Pool funds live in PDA-derived vaults with no admin drain keys
+- **MEV-immune by design** — Bots cannot extract value from data they cannot see
 
-*(See our [Audit Scope](./audit_scope.md) for full security analysis)*
+Full details: [audit_scope.md](./audit_scope.md) · [threat_model.md](./threat_model.md)
 
 ---
 
-## 📂 Project Structure
+## Project Structure
 
-- `cli/` - The interactive Terminal UI (bash + gum)
-- `programs/` - Solana smart contracts (Anchor)
-    - `bastion-pool/` - ZK Dark Pool logic
-    - `bastion-amm/` - Constant Product AMM
-- `landing-page/` - React/Vite promotional website
-- `scripts/` - TypeScript deployment & initialization tools
-- `zk/` - Halo2 circuits and WASM provers
+```
+bastion/
+├── cli/                    # Interactive terminal UI
+│   ├── bastion             # Main entry point
+│   ├── lib/                # Feature modules (trade, liquidity, zkproof, etc.)
+│   └── config/             # Network and contract configuration
+├── programs/               # Solana smart contracts (Anchor/Rust)
+│   ├── bastion-pool/       # ZK dark pool program
+│   └── bastion-amm/        # Constant product AMM program
+├── sdk/                    # TypeScript SDK for programmatic access
+├── relayer/                # Off-chain matching engine (Rust)
+├── indexer/                # On-chain transaction indexer
+├── zk/                     # Halo2 ZK circuits + WASM prover
+├── scripts/                # Deployment and initialization scripts
+├── landing-page/           # React/Vite website (bastion-solana.vercel.app)
+├── tests/                  # Integration and anchor tests
+└── install-cli.sh          # One-line installer script
+```
+
+---
+
+## Links
+
+| | |
+|:---|:---|
+| **Website** | [bastion-solana.vercel.app](https://bastion-solana.vercel.app) |
+| **GitHub** | [github.com/krishnagoyal099/Bastion-solana](https://github.com/krishnagoyal099/Bastion-solana) |
+| **License** | [MIT](./LICENSE) |
 
 ---
 
 <div align="center">
-  <p>Built with 🖤 for the Solana Ecosystem.</p>
+  <sub>Built for the Solana ecosystem.</sub>
 </div>
