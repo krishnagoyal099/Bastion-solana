@@ -170,6 +170,50 @@ Full details: [audit_scope.md](./audit_scope.md) · [threat_model.md](./threat_m
 
 ---
 
+## Troubleshooting
+
+### CLI shows "disconnected"
+
+The status bar in the Bastion CLI displays **disconnected** when it cannot reach the Solana RPC endpoint.
+
+**Cause:** The CLI defaults to `localnet` (`http://127.0.0.1:8899`). If the local validator isn't running, every RPC health check fails and the status falls back to "disconnected."
+
+**Fix — Option 1: Start the local validator**
+
+```bash
+solana-test-validator
+```
+
+Once the validator is listening on port 8899, restart the CLI and it will show **connected**.
+
+**Fix — Option 2: Switch to devnet**
+
+If you don't need a local validator, point the CLI at Solana's public devnet:
+
+```bash
+bastion config set-network devnet
+```
+
+**Verify the connection**
+
+```bash
+# From the CLI Settings menu → "Test Network Connection"
+# Or directly:
+solana cluster-version --url http://127.0.0.1:8899   # localnet
+solana cluster-version --url https://api.devnet.solana.com  # devnet
+```
+
+### Other common issues
+
+| Symptom | Cause | Fix |
+|:---|:---|:---|
+| `gum: command not found` | `gum` TUI dependency not installed | Install via `brew install gum`, `sudo apt install gum`, or `go install github.com/charmbracelet/gum@latest` |
+| Airdrop fails | Airdrop only works on devnet/localnet | Switch network: `bastion config set-network devnet` |
+| Deposit says "On-chain deposit unavailable" | Validator not running or programs not deployed | Start validator, then run `anchor deploy` and `npx ts-node scripts/init-pool.ts` |
+| Balance shows `?` or `0.00` | Wallet keypair missing or no funds | Create identity in Identity Manager, then request airdrop from Settings |
+
+---
+
 ## Project Structure
 
 ```
