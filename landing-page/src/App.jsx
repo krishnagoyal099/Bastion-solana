@@ -160,7 +160,7 @@ function App() {
                          </p>
                     </div>
                     <div>
-                        <img src="/Trst.png" alt="ZK Proof Demo" className="w-full h-auto object-contain rounded-lg border border-swiss-white/10" />
+                        <img src="/Zk-proof.png" alt="ZK Proof Demo" className="w-full h-auto object-contain rounded-lg border border-swiss-white/10" />
                     </div>
                 </div>
             </section>
